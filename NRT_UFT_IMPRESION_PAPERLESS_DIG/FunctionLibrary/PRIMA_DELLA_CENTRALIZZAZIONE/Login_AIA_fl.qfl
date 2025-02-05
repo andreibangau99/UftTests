@@ -1,0 +1,68 @@
+﻿Function Login_AIA()
+
+	clickButton=false
+	If UIAWindow("67CU").Exist(2) Then
+		UIAWindow("67CU").Activate
+		set mySendKeys = CreateObject("WScript.shell")
+		mySendKeys.SendKeys("%{F4}")
+		wait 1
+		
+		clickButton =  awaitAndClick(UIAWindow("67CU").UIAWindow("AIA **PREPROD** Versione").UIAButton("Yes"),5)
+
+		wait 2
+		Set mySendKeys = Nothing
+	End if 
+	
+	If not clickButton Then
+		Systemutil.CloseProcessByName("GTvRT.exe")
+	End If
+	
+	'se esiste popup prolog terminated with error code 51
+	Call awaitAndClick(Dialog("GraphTalk 5.2.0").WinButton("OK"),5)
+	
+	Dim oShell
+	Set oShell = CreateObject ("WScript.shell")
+	
+	oShell.run RecuperoInput("ENV_PRE_PROD")
+	Set oShell = Nothing
+	
+	wait 3
+	
+	'se nel cmd compare il messaggio "Is it OK to continue disconnecting and force them closed", forza la chiusura inserendo Y
+	If Window("launch-word_pre_prod_ISIM_noWo").Exist(15) Then
+		returnText=Window("launch-word_pre_prod_ISIM_noWo").GetVisibleText
+		If instr (returnText, "Is it OK to continue disconnecting and force them closed" )>0Then
+			Set oShell = CreateObject ("WScript.shell")
+			Window("launch-word_pre_prod_ISIM_noWo").Click
+			wait 1
+			oShell.SendKeys "Y"
+			wait 1
+			oShell.SendKeys "{ENTER}"
+			wait 1
+		End If	
+	End If
+		
+	'attendo finchè non compare la popup di login
+	While not UIAWindow("Login").Exist(1)
+		wait 1
+	Wend 
+	
+	'inserisco user e pwd 
+	UIAWindow("Login").UIAObject("Login").UIATable("Table").UIATable("Table").UIAEdit("Name:").SetValue RecuperoInput("DT_USER")
+	UIAWindow("Login").UIAObject("Login").UIATable("Table").UIATable("Table").UIAEdit("Password:").SetSecure RecuperoInput("DT_PASSWORD")
+	
+	wait 1
+	
+	UIAWindow("Login").UIAObject("Login").UIATable("Table").UIAButton("Ok").Click
+	
+	
+	If not await(UIAWindow("67CU"),10) Then
+		Reporter.ReportEvent  micFail,  "Login", "ERRORE: Credenziali errate o errore di apertura dell'applicativo" 
+		ExitTestIteration
+	Else
+		UIAWindow("67CU").Maximize
+	End If
+	
+End Function
+
+

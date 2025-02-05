@@ -1,0 +1,61 @@
+﻿Function close_and_launch_app()
+	Call close_app()
+	SystemUtil.Run "C:\AccAire\AirePreproduccion.jnlp"
+End Function
+
+Function close_app()
+	Set aireApp=  Window("regexpwndtitle:=REALE SEGUROS", "regexpwndclass:=SunAwtFrame", "is owned window:=False", "is child window:=False")
+
+	If aireApp.Exist(1) Then
+		Systemutil.CloseProcessByName("jp2launcher.exe")
+	End if
+End Function
+
+Function assertText(actualText, expectedText)	
+	' Validar que el texto tiene el valor esperado
+	If actualText = expectedText Then
+	    Reporter.ReportEvent micPass, "Validación de Texto", "El valor del texto es correcto: " & actualText
+	Else
+	    Reporter.ReportEvent micFail, "Validación de Texto", "El valor del texto es incorrecto. Valor actual: " & actualText & ", Valor esperado: " & expectedText
+	End If
+End Function
+
+
+'Return the data from excel
+Function recuperoInput(DatoInput)
+
+	'FuenteDato=Parameter(DatoInput) SEMPRE COMMENTATO SU VALUE EDGE!!!
+	
+	FuenteDato=DataTable.Value(DatoInput)
+
+	RecuperoInput = FuenteDato
+	
+	If not isValidString(RecuperoInput) Then writeMessage "Fetch input on "&DatoInput , "INVALID STRING! (null/empty)"
+
+End Function
+
+'Set the data in excel
+Function guardoInput(FieldInput, DatoInput)
+
+	'FuenteDato=Parameter(DatoInput) SEMPRE COMMENTATO SU VALUE EDGE!!!
+	
+	DataTable.Value(FieldInput, "Global") = DatoInput
+
+End Function
+
+'Check if it's a string
+Function isValidString(str)
+	isValidString = not (isNull(str) or isEmpty(str) or str = "")
+End Function
+
+Function saveScreenshot(element)
+	' Captura una imagen de un objeto específico
+	element.CaptureBitmap "C:\captura.png"
+	
+	' Incluye la captura de pantalla en el reporte
+	Reporter.ReportEvent micDone, "Captura de pantalla", "Captura realizada correctamente", "C:\captura.png"
+	
+	' Elimina la imagen temporal
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	fso.DeleteFile "C:\captura.png"
+End Function

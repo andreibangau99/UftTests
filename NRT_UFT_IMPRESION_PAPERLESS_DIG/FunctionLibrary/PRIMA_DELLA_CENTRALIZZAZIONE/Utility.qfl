@@ -1,0 +1,655 @@
+﻿Function CreateProperty(TempFilename,Folder)
+	Dim FSO, WshShell, TempFolder,data_odierna
+
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+	Set WshShell = CreateObject("WScript.Shell")
+
+	'NomeFile="C:\Properties\Properties_"&testname&"_"&sTimeStamp&".txt"
+	TempFolder = WshShell.ExpandEnvironmentStrings(Folder)
+
+	if Not FSO.FolderExists(TempFolder) Then
+		FSO.CreateFolder(TempFolder)
+	End If
+	
+	If not FSO.FileExists(TempFilename) Then
+		  Dim TS
+		  Set TS = FSO.CreateTextFile(TempFilename, True)
+		  TS.Close
+	End If
+
+End Function
+
+Function setProperty(chiave,valore)
+dim record(),contatore,myarray,risultato,flag,riga,file,fso,f,s
+
+flag=false
+contatore=0
+TempFilename=Environment("nomedelfile")
+
+set fso=createobject("Scripting.FileSystemObject")
+Set OggFile = fso.GetFile(TempFilename)
+Set OggTextStream1 = OggFile.OpenAsTextStream(1)
+
+Do While Not OggTextStream1.AtEndOfStream
+	Redim Preserve record(contatore+1)
+	riga=cstr(OggTextStream1.ReadLine)
+	record(contatore)=riga
+  	
+  	if record(contatore)="" then
+  		exit do 
+  	end if
+	
+	contatore=contatore+1
+ loop
+
+OggTextStream1.Close
+
+for i=0 to contatore-1
+	myarray=Split(record(i),"=")
+	
+	if (myarray(0)=chiave) then
+  		myarray(1)=valore
+  		risultato=myarray(0)&"="&myarray(1)
+  		record(i)=risultato  
+  		flag=true
+	end if
+next
+
+Set OggTextStream = OggFile.OpenAsTextStream(2)
+
+if(flag=true) then
+	for i=0 to contatore-1
+		OggTextStream.WriteLine record(i)
+	next
+else 
+	for i=0 to contatore-1
+		OggTextStream.WriteLine record(i)
+	next
+
+	aggiungi=chiave&"="&valore
+	OggTextStream.WriteLine aggiungi
+end if
+
+OggTextStream.Close
+contatore=contatore+1
+
+End Function
+
+Function getProperty(chiave)
+dim valore,contatore,myarray,riga,file,record()
+
+contatore=0
+TempFilename=Environment("nomedelfile")
+
+set fso=createobject("Scripting.FileSystemObject")
+Set OggFile = fso.GetFile (TempFilename)
+Set OggTextStream1 = OggFile.OpenAsTextStream(1)
+
+Do While Not OggTextStream1.AtEndOfStream
+	Redim Preserve record(contatore+1)
+	riga=CStr(OggTextStream1.ReadLine)
+  	record(contatore)=riga
+  	
+  	if record(contatore)="" then
+  		exit do 
+  	end if
+  	
+  	contatore=contatore+1
+loop
+ 
+OggTextStream1.Close
+ 
+for i=0 to contatore-1
+	myarray=Split(record(i),"=")
+
+	if (myarray(0)=chiave) then
+		valore=myarray(1)
+	end if
+next
+
+valore=Replace(valore,"\u00E0","à")
+valore=Replace(valore,"\u00E8","è")
+valore=Replace(valore,"\u00EC","ì")
+valore=Replace(valore,"\u00F2","ò")
+valore=Replace(valore,"\u00F9","ù")
+valore=Replace(valore,"\:",":")
+valore=Replace(valore,"\!","!")
+valore=Replace(valore,"\?","?")
+valore=Replace(valore,"\\","\")
+ 
+getProperty = valore
+end function
+
+Function recoverData(codiceProdotto,chiave)
+dim valore,record(),contatore,myarray,riga,file
+
+contatore=0
+data_odierna=Replace(Date, "/", "_")
+
+Set fso = createobject("Scripting.FilesystemObject")
+Set Folder = fso.GetFolder("\\applicazionidigruppo\applicazioni\SWTestingTools\UFT_One\Test\Properties\Recover Data")
+Set Files = Folder.Files
+
+'Scorro tutti i file esistenti all'interno della directory
+For each item in Files
+	TipoDato=item.Type
+	NomeFile=item.name
+
+	'Entro nell'if solo per i file che hanno come estensione .cvs e nel nome sofia_aia_ext_log
+	If TipoDato="Text Document" And Instr(NomeFile,codiceProdotto) >  0  Then
+		NomeProperties=item.name
+		Path=item.Path
+	
+		Call setProperty("PATH_RECOVER_DATA","\"&Path)
+		Call setProperty("FILENAME_TO_MOVE",NomeProperties)
+		Exit for
+	 End If
+Next
+
+TempFilename=Path
+If (isNull(TempFilename) OR isEmpty(TempFilename)) Then
+	Reporter.ReportEvent  micFail,  "ERRORE: PATH VUOTO!", "manca il file in RecoverData!" 
+	ExitTestIteration
+End If
+
+set fso=createobject("Scripting.FileSystemObject")
+Set OggFile = fso.GetFile (TempFilename)
+Set OggTextStream1 = OggFile.OpenAsTextStream(1)
+
+Do While Not OggTextStream1.AtEndOfStream
+	Redim Preserve record(contatore+1)
+	riga=CStr(OggTextStream1.ReadLine)
+  	record(contatore)=riga
+  	
+  	if record(contatore)="" then
+  		exit do 
+  	end if
+  	
+  	contatore=contatore+1
+ loop
+ 
+OggTextStream1.Close
+ 
+for i=0 to contatore-1
+	myarray=Split(record(i),"=")
+  	
+  	if (myarray(0)=chiave) then
+  		valore=myarray(1)
+	end if
+next
+
+valore=Replace(valore,"\u00E0","à")
+valore=Replace(valore,"\u00E8","è")
+valore=Replace(valore,"\u00EC","ì")
+valore=Replace(valore,"\u00F2","ò")
+valore=Replace(valore,"\u00F9","ù")
+valore=Replace(valore,"\:",":")
+valore=Replace(valore,"\!","!")
+valore=Replace(valore,"\?","?")
+valore=Replace(valore,"\\","\")
+ 
+recoverData = valore
+end function
+
+Function dataCorrente()
+
+dim data
+data=FormatDateTime(now,0)
+dataCorrente=CStr(data)
+	
+End Function
+
+Function ScriviFileDettaglio (STEP_DESCRIPTION , EXPECTED_INPUT , INPUT_VALUE , OUTPUT_PRODUCT, STEP_EXECUTION_OUTCOME )
+	
+Dim file,fso	
+
+item1=getProperty("TC_ID")
+item2=getProperty("MODULO")
+item3=getProperty("DIR_LOG_DETTAGLIO")
+
+find1 = Replace( item3, "C\:\\Temp\\\\" , "C:\Temp\")
+find2 = Replace(find1, "/","\")
+sd = Replace(STEP_DESCRIPTION, ";", "")
+ei = Replace(EXPECTED_INPUT, ";","")
+iv = Replace(INPUT_VALUE, ";","")
+op = Replace(OUTPUT_PRODUCT, ";","")
+seo = Replace(STEP_EXECUTION_OUTCOME, ";","")
+
+Set FsO = CreateObject("Scripting.FileSystemObject")
+Set addLine=FsO.OpenTextFile(find2, 8)
+
+addLine.WriteLine (dataCorrente &";"& item1 & ";" & item2 &";" & sd & ";" & ei & ";" & iv &";" & op &";" & seo )
+addLine.Close
+
+End Function
+
+Function data()
+
+dim d
+d=Date
+data=CStr(d)
+	
+End Function
+
+Function creazioneFiles()
+	
+data()
+
+Dim nomeFile
+nomeFile="TEST"&data
+nomeFile3=replace(nomeFile,"/","")
+setProperty "TEST_SYSDATE",nomeFile3
+
+Dim nomeFileOK
+nomeFileOK="TEST"&data&"_OK"
+nomeFileOK3=replace(nomeFileOK,"/","")
+setProperty "TEST_SYSDATE_OK",nomeFileOK3
+
+Dim nomeFileKO
+nomeFileKO="TEST"&data&"_KO"
+nomeFileKO3=replace(nomeFileKO,"/","")
+setProperty "TEST_SYSDATE_KO",nomeFile3
+
+Const ForReading = 1, ForWriting = 2
+Dim fso, f
+Set fso = CreateObject("Scripting.FileSystemObject")
+
+Dim path, path1, path2
+path="C:\Temp\ENEL\" & nomeFile3 & ".csv"
+path1="C:\Temp\ENEL\" & nomeFileOK3 & ".csv"
+path2="C:\Temp\ENEL\" & nomeFileKO3 & ".csv"
+
+Set f = fso.OpenTextFile(path, ForWriting, True) 
+Set f = fso.OpenTextFile(path1, ForWriting, True) 
+Set f = fso.OpenTextFile(path2, ForWriting, True) 
+
+End Function
+
+Function DataRandom(StartDate, EndDate)
+
+StartDate = CDate(StartDate)
+EndDate = CDate(EndDate)
+
+Randomize 'Should be initialised once rather than with each call to the function.
+dtmRandomDate = DateValue((EndDate - StartDate) * Rnd + StartDate)
+ 
+DataRandom = dtmRandomDate 'This line returns the result.End Function
+       
+End  Function
+
+Function dateItaliana()
+
+testname = Environment("TestName")
+
+If RecuperoInput("RECOVERY_DATA")="Y" Then
+	dataEmissionePropedeutica=getProperty("DATA_EFFETTO_EMISSIONE_PROPEDEUTICA")
+	dataEmissionePropedeuticaConvert=CDate(dataEmissionePropedeutica)
+	
+	If Instr(testname,"Versamento") or Instr(testname,"Switch") Then
+		data_odierna=dataEmissionePropedeuticaConvert+60
+	ElseIf instr (testname,"Riscatto")  Then
+		NomeFileRecoverData=getProperty("FILENAME_TO_MOVE")
+		
+		If instr (NomeFileRecoverData, "Emissione") Then
+			data_odierna=dataEmissionePropedeuticaConvert+425
+		Else
+			data_odierna=dataEmissionePropedeuticaConvert+25
+		End If
+	End If	
+ElseIf RecuperoInput("RECOVERY_DATA")="N" Then
+	If Instr(testname,"Versamento") or Instr(testname,"Switch") Then
+		dataUltimaOp=getProperty("DATA_ULTIMA_OPERAZIONE_POLIZZA")
+		dataUltimaOperazione=CDate(dataUltimaOp)
+		data_odierna=dataUltimaOperazione+60
+	ElseIf instr (testname,"Riscatto") Then
+		dataUltimaOp=getProperty("DATA_ULTIMA_OPERAZIONE_POLIZZA")
+		dataUltimaOperazione=CDate(dataUltimaOp)
+		data_odierna=dataUltimaOperazione+425
+	End If
+Else
+	data_odierna=date()
+End If
+
+giorno=Weekday(data_odierna)
+'Per generare la DataEffetto Italiana dobbiamo individuare il primo Venerdì rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc). In seguito per ricavare la DataSistema andiamo al Lunedì pre
+'precedente a DataEffetto.
+If giorno=1 Then
+	DataEffettoItaliana=dateadd("d",-2,data_odierna)
+ElseIf giorno=2 Then
+	DataEffettoItaliana=dateadd("d",-3,data_odierna)
+ElseIf giorno=3 Then
+	DataEffettoItaliana=dateadd("d",-4,data_odierna)
+ElseIf giorno=4 Then
+	DataEffettoItaliana=dateadd("d",-5,data_odierna)
+ElseIf giorno=5 Then
+	DataEffettoItaliana=dateadd("d",-6,data_odierna)
+ElseIf giorno=6 Then
+	DataEffettoItaliana=dateadd("d",-7,data_odierna)
+ElseIf giorno=7 Then
+	DataEffettoItaliana=dateadd("d",-1,data_odierna)
+End If
+
+DataSistema=DataEffettoItaliana-4
+DataEffetto=DataEffettoItaliana
+dateItaliana=array(DataSistema,DataEffetto)
+
+End Function
+
+Function dateRM()
+testname = Environment("TestName")
+
+If RecuperoInput("RECOVERY_DATA")="Y" Then
+	dataEmissionePropedeutica=getProperty("DATA_EFFETTO_EMISSIONE_PROPEDEUTICA")
+	dataEmissionePropedeuticaConvert=CDate(dataEmissionePropedeutica)
+	If Instr(testname,"Versamento") or Instr(testname,"Switch") Then
+		data_odierna=dataEmissionePropedeuticaConvert+60
+	ElseIf instr (testname,"Riscatto")  Then
+		NomeFileRecoverData=getProperty("FILENAME_TO_MOVE")
+		
+		If instr (NomeFileRecoverData, "Emissione") Then
+			data_odierna=dataEmissionePropedeuticaConvert+425
+		Else
+			data_odierna=dataEmissionePropedeuticaConvert+25
+		End If
+	End If
+ElseIf RecuperoInput("RECOVERY_DATA")="N" Then
+	If Instr(testname,"Versamento") or Instr(testname,"Switch") Then
+		dataUltimaOp=getProperty("DATA_ULTIMA_OPERAZIONE_POLIZZA")
+		dataUltimaOperazione=CDate(dataUltimaOp)
+		data_odierna=dataUltimaOperazione+60
+	ElseIf instr (testname,"Riscatto") Then
+		dataUltimaOp=getProperty("DATA_ULTIMA_OPERAZIONE_POLIZZA")
+		dataUltimaOperazione=CDate(dataUltimaOp)
+		data_odierna=dataUltimaOperazione+425
+	End If
+Else
+	data_odierna=date()
+End If
+
+giorno=Weekday(data_odierna)
+'Per generare la DataEffetto RealeM dobbiamo individuare il primo Luned' rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc). In seguito per ricavare la DataSistema andiamo al Venerdi' pre
+'precedente a DataEffetto.
+If giorno=1 Then
+	DataEffettoRM=dateadd("d",-6,data_odierna)
+ElseIf giorno=2 Then
+	DataEffettoRM=dateadd("d",-7,data_odierna)
+ElseIf giorno=3 Then
+	DataEffettoRM=dateadd("d",-1,data_odierna)
+ElseIf giorno=4 Then
+	DataEffettoRM=dateadd("d",-2,data_odierna)
+ElseIf giorno=5 Then
+	DataEffettoRM=dateadd("d",-3,data_odierna)
+ElseIf giorno=6 Then
+	DataEffettoRM=dateadd("d",-4,data_odierna)
+ElseIf giorno=7 Then
+	DataEffettoRM=dateadd("d",-5,data_odierna)
+End If
+
+DataSistema=DataEffettoRM-3
+DataEffetto=DataEffettoRM
+dateRM=array(DataSistema,DataEffetto)
+	
+End Function
+
+Function dateItalianaSwitch()
+
+If RecuperoInput("RECOVERY_DATA")="Y" Then
+	dataEmissionePropedeutica=getProperty("DATA_EFFETTO_EMISSIONE_PROPEDEUTICA")
+	dataEmissionePropedeuticaConvert=CDate(dataEmissionePropedeutica)
+	data_odierna=dataEmissionePropedeuticaConvert+60
+Else
+	data_odierna=getProperty("DATA_SISTEMA")
+End If
+
+giorno=Weekday(data_odierna)
+'Per generare la DataEffetto Italiana dobbiamo individuare il primo Venerdì rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc). In seguito per ricavare la DataSistema andiamo al Lunedì pre
+'precedente a DataEffetto.
+If giorno=1 Then
+	DataEffettoItaliana=dateadd("d",+5,data_odierna)
+ElseIf giorno=2 Then
+	DataEffettoItaliana=dateadd("d",+4,data_odierna)
+ElseIf giorno=3 Then
+	DataEffettoItaliana=dateadd("d",+3,data_odierna)
+ElseIf giorno=4 Then
+	DataEffettoItaliana=dateadd("d",+2,data_odierna)
+ElseIf giorno=5 Then
+	DataEffettoItaliana=dateadd("d",+1,data_odierna)
+ElseIf giorno=6 Then
+	DataEffettoItaliana=dateadd("d",+7,data_odierna)
+ElseIf giorno=7 Then
+	DataEffettoItaliana=dateadd("d",+6,data_odierna)
+End If
+
+DataSistema=getProperty("DATA_SISTEMA")
+DataEffetto=DataEffettoItaliana
+dateItalianaSwitch=array(DataSistema,DataEffetto)
+
+End Function
+
+Function dateRMSwitch()
+
+If RecuperoInput("RECOVERY_DATA")="Y" Then
+	dataEmissionePropedeutica=getProperty("DATA_EFFETTO_EMISSIONE_PROPEDEUTICA")
+	dataEmissionePropedeuticaConvert=CDate(dataEmissionePropedeutica)
+	data_odierna=dataEmissionePropedeuticaConvert+60
+Else
+	data_odierna=getProperty("DATA_SISTEMA")
+End If
+
+giorno=Weekday(data_odierna)
+'Per generare la DataEffetto Italiana dobbiamo individuare il primo Venerdì rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc). In seguito per ricavare la DataSistema andiamo al Lunedì pre
+'precedente a DataEffetto.
+
+If giorno=1 Then
+	DataEffettoItaliana=dateadd("d",+1,data_odierna)
+ElseIf giorno=2 Then
+	DataEffettoItaliana=dateadd("d",+7,data_odierna)
+ElseIf giorno=3 Then
+	DataEffettoItaliana=dateadd("d",+6,data_odierna)
+ElseIf giorno=4 Then
+	DataEffettoItaliana=dateadd("d",+5,data_odierna)
+ElseIf giorno=5 Then
+	DataEffettoItaliana=dateadd("d",+4,data_odierna)
+ElseIf giorno=6 Then
+	DataEffettoItaliana=dateadd("d",+3,data_odierna)
+ElseIf giorno=7 Then
+	DataEffettoItaliana=dateadd("d",+2,data_odierna)
+End If
+
+DataSistema=getProperty("DATA_SISTEMA")
+DataEffetto=DataEffettoItaliana
+dateRMSwitch=array(DataSistema,DataEffetto)
+
+End Function
+
+Function readEachRowDataExcel(Path,Sheet)
+
+Set objExcel = CreateObject("Excel.Application")
+Set objWorkbook = objExcel.Workbooks.Open(Path)
+Set objSheet = objWorkbook.Worksheets(Sheet)
+
+ColCount = objSheet.UsedRange.Columns.Count
+RowCount = objSheet.UsedRange.Rows.Count
+nav=array()
+
+For i = 1 To RowCount
+	fieldvalue = objSheet.Cells(i,1)
+        ReDim Preserve nav(UBound(nav) + 1)
+	nav(UBound(nav)) = fieldvalue
+Next
+
+readEachRowDataExcel=nav
+
+Set objSheet  = Nothing
+Set objWorkbook = Nothing
+Set objExcel = Nothing
+
+End Function
+
+Function dateItalianaSwitchinFondiInterniInterni()
+data_effetto=getProperty("DATA_EFFETTO")
+dataeff=Cdate(data_effetto)
+giorno=Weekday(dataeff)
+
+'Per generare la DataEffetto Italiana dobbiamo individuare il primo Venerdì rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc).
+If giorno=1 Then
+	DataEffettoItaliana=dateadd("d",+5,dataeff)
+ElseIf giorno=2 Then
+	DataEffettoItaliana=dateadd("d",+4,dataeff)
+ElseIf giorno=3 Then
+	DataEffettoItaliana=dateadd("d",+3,dataeff)
+ElseIf giorno=4 Then
+	DataEffettoItaliana=dateadd("d",+2,dataeff)
+ElseIf giorno=5 Then
+	DataEffettoItaliana=dateadd("d",+1,dataeff)
+ElseIf giorno=6 Then
+	DataEffettoItaliana=dateadd("d",+7,dataeff)
+ElseIf giorno=7 Then
+	DataEffettoItaliana=dateadd("d",+6,dataeff)
+End If
+
+DataSistema=getProperty("DATA_EFFETTO")
+DataEffetto=DataEffettoItaliana
+dateItalianaSwitchinFondiInterniInterni=array(DataSistema,DataEffetto)
+
+End Function
+
+Function dateRMSwitchinFondiInterniInterni()
+
+data_effetto=getProperty("DATA_EFFETTO")
+dataeff=Cdate(data_effetto)
+giorno=Weekday(dataeff)
+
+'Per generare la DataEffetto Italiana dobbiamo individuare il primo Venerdì rispetto alla data Odierna(Dom=1,Lun=2,Mar=3,etc).
+If giorno=1 Then
+	DataEffettoItaliana=dateadd("d",+1,dataeff)
+ElseIf giorno=2 Then
+	DataEffettoItaliana=dateadd("d",+7,dataeff)
+ElseIf giorno=3 Then
+	DataEffettoItaliana=dateadd("d",+6,dataeff)
+ElseIf giorno=4 Then
+	DataEffettoItaliana=dateadd("d",+5,dataeff)
+ElseIf giorno=5 Then
+	DataEffettoItaliana=dateadd("d",+4,dataeff)
+ElseIf giorno=6 Then
+	DataEffettoItaliana=dateadd("d",+3,dataeff)
+ElseIf giorno=7 Then
+	DataEffettoItaliana=dateadd("d",+2,dataeff)
+End If
+
+DataSistema=getProperty("DATA_EFFETTO")
+DataEffetto=DataEffettoItaliana
+dateRMSwitchinFondiInterniInterni=array(DataSistema,DataEffetto)
+
+End Function
+
+Function returnCodeFondoInterno(fondo)
+
+Select Case fondo
+	Case "FORZA AGGRESSIVA"
+	   	returnCodeFondoInterno="F5"
+	Case "FORZA BILANCIATA"
+	   	returnCodeFondoInterno="F3"
+	Case "FORZA DINAMICA"
+	   	 returnCodeFondoInterno="FD"
+	Case "REALE LINEA MERCATO GLOBALE"
+	  	 returnCodeFondoInterno="832"
+	Case "LINEA BILANCIATA ATTIVA"
+	  	 returnCodeFondoInterno="971"
+	Case "MULTIPLANO LINEA AZIONARIA"
+	  	 returnCodeFondoInterno="MLA"
+	Case "MULTIPLANO LINEA BILANCIATA"
+	  	 returnCodeFondoInterno="MLB"
+End Select
+	
+End Function
+
+Function randomNumber(LengthOfRandomNumber)
+
+Dim sMaxVal : sMaxVal = ""
+Dim iLength : iLength = LengthOfRandomNumber
+	
+'Find the maximum value for the given number of digits
+For iL = 1 to iLength
+	sMaxVal = sMaxVal & "9"
+Next
+
+sMaxVal = Int(sMaxVal)
+	
+'Find Random Value
+Randomize
+iTmp = Int((sMaxVal * Rnd) + 1)
+
+'Add Trailing Zeros if required
+iLen = Len(iTmp)
+randomNumber = iTmp * (10 ^(iLength - iLen))
+
+End Function
+
+Function CopyPropertiesToRecoverData()
+Dim FSO
+Set WshShell = CreateObject("WScript.Shell")
+Set FSO = CreateObject("Scripting.FileSystemObject")
+
+TempFilename=Environment.Value("nomedelfile")
+TempFolder = WshShell.ExpandEnvironmentStrings("\\applicazionidigruppo\applicazioni\SWTestingTools\UFT_One\Test\Properties\Recover Data\")
+
+if Not FSO.FolderExists(TempFolder) Then
+	FSO.CreateFolder(TempFolder)
+End If
+
+If not FSO.FileExists(TempFilename) Then
+	Dim TS
+	Set TS = FSO.CreateTextFile(TempFilename, True)
+	TS.Close
+End If
+
+FSO.CopyFile TempFilename, TempFolder
+
+End  Function
+
+Function MoveFile(Path1,Path2)
+Set obj = createobject("Scripting.FileSystemObject") 'Creating a File Object
+
+Dim filename1,filename2                                   'Declaring variables
+filename1=Path1 'Mentioning the name and source location of the file to be moved
+filename2=Path2'Mentioning the name and destination location of the file to be moved
+
+obj.MoveFile filename1,filename2  'MoveFile Method is used for moving the file to the destination
+Set obj=Nothing       
+	
+End Function
+Function RecuperoInput(DatoInput)
+
+FonteDato=Parameter(DatoInput)
+	
+'FonteDato=DataTable.Value(DatoInput)
+
+RecuperoInput = FonteDato
+
+End Function
+
+Function DeleteDuplicate(StringList)
+'	recupero i nomi dall'array ed elimino i duplicati
+Set objDictionary = CreateObject("Scripting.Dictionary")
+lista=Split(StringList ,";")
+
+For Each Item in lista
+	If Not objDictionary.Exists(Item) Then
+		objDictionary.Add Item, Item   
+    	End If
+Next
+
+intItems = objDictionary.Count - 1
+ReDim lista(intItems)
+i = 0
+
+For Each strKey in objDictionary.Keys
+    lista(i) = strKey
+    i = i + 1
+Next
+
+DeleteDuplicate = Join (lista,";")		
+
+End Function
+

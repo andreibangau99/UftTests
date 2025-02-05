@@ -1,0 +1,79 @@
+﻿Function IncassoTitoli(numeroPolizza)
+	wait 3
+	UIAWindow("67CU").UIAMenu("Application").UIAObject("Funzioni speciali").Click
+	wait 1
+	UIAWindow("67CU").UIAMenu("Funzioni speciali").UIAObject("Stato premi (ex premium)").Click
+	wait 3
+	Window("67CU").Window("Gestione emissione premi").WinEdit("Numero").Click
+	wait 1
+	Set WshShell = CreateObject("WScript.Shell")
+	wait 1
+	WshShell.SendKeys numeroPolizza
+	wait 1
+	'TAB
+	wait 3
+	WshShell.SendKeys "{TAB}"
+	wait 3
+	UIAWindow("67CU").UIAWindow("Gestione emissione premi").UIAMenu("Application").UIAObject("File").Click
+	wait 1
+	UIAWindow("67CU").UIAWindow("Gestione emissione premi").UIAMenu("File").UIAObject("Titoli del contrato").Click
+	wait 5
+	Dim numeroRighe
+	Set oDesc = Description.Create()
+	oDesc("controltype").Value = "ListItem" 'Recupera tutti i titoli
+	Set listaTitoli=UIAWindow("67CU").UIAWindow("Gestione emissione premi").UIAWindow("Titoli del contratto").UIAList("ListaTitoliContratto").ChildObjects(oDesc)
+	numeroRighe = listaTitoli.Count ' recupero numero totale titoli
+	If numeroRighe = 0 Then
+		Reporter.ReportEvent micFail, "Incasso Titoli Contratto", "Nella sezione Incasso Titoli del contratto "&numeroPolizza&" non sono presenti Titoli"
+		ExitTestIteration
+	End If
+	
+	'scorro tutte le righe
+	titoloTrovato=False
+	For i = 0 To numeroRighe - 1
+		singoloTitolo = listaTitoli(i).GetROProperty("name")		
+'		proposta(i).Highlight
+		'controllo che la proposta abbia i dati necessari, salvo il nome del fondo contenuto nella riga all'interno dell'array fondi
+		If instr(singoloTitolo, "emesso") >0 Then
+			wait 2
+			listaTitoli(i).Click
+			wait 2
+			Window("67CU").Window("Gestione emissione premi").Window("Titoli del contratto").WinButton("Saldato").Click
+		End If		
+	Next
+
+	wait 2
+	Window("67CU").Window("Gestione emissione premi").Window("Titoli del contratto").WinButton("Conferma").Click
+	wait 3
+	UIAWindow("67CU").UIAWindow("Gestione emissione premi").UIAMenu("Application").UIAObject("File").Click
+	wait 1
+	UIAWindow("67CU").UIAWindow("Gestione emissione premi").UIAMenu("File").UIAObject("Esci F4").Click
+	wait 3
+	Window("67CU").Window("Gestione emissione premi").Window("Uscita senza salvataggio").WinButton("Registrare").Click
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+End Function
