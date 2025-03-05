@@ -1,0 +1,5 @@
+﻿<Properties>
+  <WatchEntry0 value="process_list.Keys" />
+  <WatchEntry1 value="process_list(key)" />
+  <WatchEntry2 value="queryString" />
+</Properties>

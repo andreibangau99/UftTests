@@ -1,0 +1,167 @@
+﻿Function AdeguataVerifica
+	Set WshShell = CreateObject("WScript.Shell")	
+	wait 2
+	'Click Adeguata Verifica
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("Adeguata Verif.").Click
+	'Gestione Popup che sembra essere un bug ma non ancora risolto da sviluppo in caso di Persona Giuridica
+	if Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Selezione...").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Selezione...").WinButton("Conferma").Click
+	End if
+	wait 10
+	'Click sul tab Operazione	
+	UIAObject("Desktop").InsightObject("SchedaTabOperazione").Click
+	'Window("67CU").InsightObject("TabOperazione").Click
+	wait 1
+	'Seleziono la scelta per Caratteristiche polizza
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Caratteristiche polizza").Select "polizza con incasso cedole"
+	wait 1
+	'Seleziono la scelta per ''Scopo Operazione''
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Scopo operazione").Select "Risparmio"
+	wait 2
+	'Seleziono la scelta per Origine Fondi
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Origine fondi").Select "Redditi da lavoro dipendente"
+	wait 2
+	
+	'---------------------------------------------------------------------PER PERSONA GIURIDICA------------------------------------------------------------------------------------------------------
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		wait 1
+		'Click sul TAB Titolare Effettivo
+		Window("67CU").InsightObject("TabTitolareEffettivo").Click
+		wait 1
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Condizione Professionale").Select "Pensionato"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ultima attività svolta").Select "Dipendente"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Informazioni titolare").Select "Assicurato in caso di polizza collettiva per conto altrui"
+		wait 3
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Note ulteriori informazioni").Click
+		wait 1
+		WshShell.SendKeys "azienda"
+		wait 2
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Legame con il Contraente").Select "Titolare effettivo legato da rapporti aziendali o professionali con il contraente"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Indicazioni rapporti az./prof.").Click
+		wait 1
+		WshShell.SendKeys "azienda"
+		wait 2
+		WshShell.SendKeys "{TAB}"
+		wait 2
+		'Click su TAB Esecutore
+		Window("67CU").InsightObject("TabEsecutore").Click
+		wait 5	
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Condizione Professionale").Select "Pensionato"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Legame con il Contraente").Select "Esecutore legato da rapporti aziendali o pro-fessionali con il contraente"
+		wait 3
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Note - 'Rapporti aziendali'").Click
+		wait 1
+		WshShell.SendKeys "azienda"
+		wait 2
+		WshShell.SendKeys "{TAB}"
+		wait 2
+		'Click Tab Attività Contraente
+		Window("67CU").InsightObject("TabAttivitàContraente").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Tipo Ditta").Select "Società a Responsabilità limitata (Srl)"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ulteriori informazioni").Select "Nessuna delle Precedenti"
+		wait 2
+		'Click sul Tab Assicurato
+		Window("67CU").InsightObject("TabAssicurato").Click
+		wait 5
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinCheckBox("2. Assicurato legato da").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Specificare").Click
+		wait 1
+		WshShell.SendKeys "azienda"
+		wait 2
+		WshShell.SendKeys "{TAB}"
+		wait 2
+		'-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	Else
+		'Click Tab Attività Contraente
+		Window("67CU").InsightObject("TabAttivitàContraente").Click
+		wait 2
+		'Condizione Professionale
+		checkCondizioneProfessionale=Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Condizione Professionale").GetROProperty("enabled")
+		If checkCondizioneProfessionale = "True"  Then
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Condizione Professionale").Select "Pensionato"
+			wait 1
+		End if
+		
+		'ultima attività svolta
+		checkUltimaAttivita=Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ultima attività svolta").GetROProperty("enabled")
+		If checkUltimaAttivita = "True"  Then
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ultima attività svolta").Select "Dipendente"
+			wait 1
+		End if
+		wait 5
+		'ulteriori informazioni
+		checkUlterioriInformazioni=Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ulteriori informazioni").GetROProperty("enabled")
+		If checkUlterioriInformazioni = "True"  Then
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Ulteriori informazioni").Select "Compro oro"
+			wait 1
+		End If
+
+	End if
+	'-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	If RecuperoInput("CONTRAENTE")="DIVERSODAASSICURATO"Then
+		'Click sul Tab Assicurato
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").Activate
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").Click
+		wait 1
+		Window("67CU").InsightObject("TabAssicurato").Click
+		wait 5
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinCheckBox("3. Altro legame").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Specificare_contraentediverso").Click
+		wait 1
+		WshShell.SendKeys "Altro legame"
+		wait 2
+		WshShell.SendKeys "{TAB}"
+		wait 2
+	End If
+	'-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	'Click su tab Utente per la compilazione dellADV
+	'Window("67CU").Window("Proposta").InsightObject("TabUtenteADV").Click
+	Window("67CU").InsightObject("uTENTE").Click
+	wait 2
+	'Compilo scelta Modalità svolgimento rapporto lavorativo
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Modalità di svolgimento rapporto continuativo").Select "In presenza del Cliente / Legale rappresentate"
+	wait 2
+	'Compilo scelta Modalità operazione
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Modalità di svolgimento operazione").Select "In presenza del Cliente / Legale rappresentante"
+	wait 2
+	'Compilo scelta Comportamento tenuto dal cliente
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Comportamento tenuto dal").Select "Normale"
+	wait 2
+	'Compilo scelta Compatibilita Rapoo/Operazione
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Compatibilità Rapp. /").Select "POLIZZA/OPERAZIONE COMPATIBILE CON LA CAPACITA' ECONOMICA E/O PATRIMONIALE DEL CONTRAENTE"
+	wait 2
+	'---------------------------------------------------------------------PER PERSONA GIURIDICA------------------------------------------------------------------------------------------------------
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinComboBox("Documento").Select "Procura / Delega"
+	End if
+	'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	'Inserisco Data Compilazione questionario
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Data Sottoscrizione documento").Click
+	wait 2
+	data_odierna=date()
+	WshShell.SendKeys data_odierna
+	wait 2
+	WshShell.SendKeys "{TAB}"
+	'Inserisco Rilevatore polizza
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinEdit("Rilevatore").Click
+	wait 2
+	WshShell.SendKeys "Automation"
+	wait 2
+	WshShell.SendKeys "{TAB}"
+	wait 2
+	'Se è abilitato il button Conferma significa che tutti i campi dell'ADV sono stati compilati
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Emissioni").WinButton("Conferma").Click
+	wait 2
+	
+	
+End Function

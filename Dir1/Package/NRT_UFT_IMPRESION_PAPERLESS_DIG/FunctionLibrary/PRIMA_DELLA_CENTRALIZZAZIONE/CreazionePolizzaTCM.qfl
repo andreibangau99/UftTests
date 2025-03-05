@@ -1,0 +1,481 @@
+﻿Function CreazionePolizzaTCM()
+	wait 2
+	UIAWindow("67CU").UIAMenu("Application").UIAObject("Produzione").Click
+	wait 2
+	UIAWindow("67CU").UIAMenu("Produzione").UIAObject("Sottoscrizione").Click
+
+	wait 2
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("Application").UIAObject("File").Click
+	wait 2
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("File").UIAObject("Nuovo... F5").Click
+	wait 2
+	'Inserisco Numero Proposta settata all'interno del versamento aggiuntivo
+	Set WshShell = CreateObject("WScript.Shell")	
+	wait 1
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Numero").Click
+	wait 1
+		
+	nProposta=randomNumber(9)
+	Call setProperty("NUMERO_PROPOSTA_BASE",nProposta)
+	'Fare getproperty del Nproposta
+	WshShell.SendKeys nProposta
+	wait 2
+	WshShell.SendKeys "{TAB}"
+	wait 1
+	'Inserisco Data ordierna per Data Ricevimento
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Ricevimento").Click
+	wait 1
+	WshShell.SendKeys data_odierna
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 1
+	'Inserisco Data odierna per Data Compilazione
+	data_odierna=date()
+	Call setProperty("DATA_SISTEMA",data_odierna)
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Compilazione").Click
+	wait 1
+	WshShell.SendKeys data_odierna
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 1
+	'Inserisco Codice Prodotto Base
+	codiceProdotto=RecuperoInput("CODICE_PRODOTTO_BASE")
+
+
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Base").Click
+	wait 1
+	WshShell.SendKeys codiceProdotto
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 5
+	
+	'gestione popup
+	If Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Information").WinButton("Ok").Exist(15) Then
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Information").WinButton("Ok").Click
+	End If
+	'Inserisco Intermediario
+	agenzia=RecuperoInput("AGENZIA")
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Intermediario").Click
+	wait 1
+	WshShell.SendKeys agenzia
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 5
+	'Inserisco Codice CUC
+	codice_CUC=RecuperoInput("CODICE_CUC")
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Codice CUC").Click
+	wait 1
+	WshShell.SendKeys codice_CUC
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 1
+	'Gestione Popup Collaboratore senza Formazione
+	If  Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Attenzione").WinButton("Ok").Exist(10) Then
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Attenzione").WinButton("Ok").Click
+	End If
+	'inserisco Contraente
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Contraente").Click
+	wait 1
+	WshShell.SendKeys "{%}"
+	wait 1
+	WshShell.SendKeys "{TAB}"
+	wait 3
+	'Click Ricerca
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca ed Identificazione...").WinButton("Ricerca").Click
+	wait 1
+	'In caso di Persona Giudirica di sceglie il radio button Persona Giuridica
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		'Select Persona Fisica
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Creazione di una persona").WinRadioButton("Persona giuridica").Set
+	Else
+		'Select Persona Fisica
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Creazione di una persona").WinRadioButton("Persona fisica").Set
+	End If
+	'Click Conferma
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Creazione di una persona").WinButton("Conferma").Click
+	wait 2
+	'Inserisco Codice Cliente
+	'Inserisco Codice Cliente
+	'In caso di Persona Giudirica prendiamo dal DataTable il codice contraente
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		codiceCliente=RecuperoInput("CODICE_CONTRAENTE")
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una personaGiuridica").WinEdit("Edit").Click
+		wait 2
+		WshShell.SendKeys codiceCliente
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		'Click Ricerca
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una personaGiuridica").WinButton("Ricerca").Click
+		wait  1
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Ricerca di una personaGiuridica").UIAList("396").UIAObject("PersonaGiuridica").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una personaGiuridica").WinButton("Conferma").Click
+		wait 1
+	Else 
+		codiceCliente=RecuperoInput("CODICE_CLIENTE")
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+		wait 1
+		WshShell.SendKeys codiceCliente
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		'Click Ricerca
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Ricerca").Click
+		wait 2
+		'Clicco sul cliente che ha il codice cliente presente sul DataTable
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Ricerca di una persona").UIAList("ListaClienti").UIAObject("Cliente").Click
+		wait 1
+		'Click Conferma
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Conferma").Click
+		wait 2
+	End if 
+	
+	'---------------------------------------------------------------------PER PERSONA GIURIDICA------------------------------------------------------------------------------------------------------
+	'In caso di Persona Giuridica devo inserire anche l'Assicurato e l'Esecutore
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		codiceClienteAssicurato=RecuperoInput("CODICE_CLIENTE_ASSICURATO")
+		wait 2
+		legaleRapp=Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Leg. Rapp.").GetROProperty("text")
+		'Nel caso in cui dopo aver inserito il Contraente Persona Giuridica non si compilasse in automatico il Legale Rappresentante
+		If legaleRapp="" Then
+			wait 1
+			Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Leg. Rapp.").Click
+			wait 1
+			WshShell.SendKeys "{%}"
+			wait 1
+			WshShell.SendKeys "{TAB}"
+			wait 1
+			Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca ed Identificazione...").WinButton("Ricerca").Click
+			wait 1
+			Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+			wait 1
+			WshShell.SendKeys codiceClienteAssicurato
+			wait 1
+			WshShell.SendKeys "{TAB}"
+			wait 1
+			Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Ricerca").Click
+			wait 1
+			UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Ricerca di una persona").UIAList("2453").UIAObject("Esecutore").Click
+			wait 1
+			Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Conferma").Click
+			wait 1
+			'Popup legame permanente 
+			if Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Legale Rappresentante").WinButton("Sì").Exist(7) Then
+				Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Legale Rappresentante").WinButton("Sì").Click
+			End If
+
+		End If
+		'Compilo Assicurato
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinButton("N-Assicurato").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinEdit("Cognome").Click
+		wait 1
+		WshShell.SendKeys "{%}"
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca ed Identificazione...").WinButton("Ricerca").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+		wait 2
+		WshShell.SendKeys codiceClienteAssicurato
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinButton("Ricerca").Click
+		wait 1
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Scelta legame assicurato(i)").UIAWindow("Ricerca di una persona").UIAList("ListaAssicurati").UIAObject("Assicurato").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinButton("Conferma").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinButton("Aggiungi").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinButton("Conferma").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinEdit("Esecutore").Click
+		wait 2
+		WshShell.SendKeys "{%}"
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca ed Identificazione...").WinButton("Ricerca").Click
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+		wait 2
+		WshShell.SendKeys codiceClienteAssicurato
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Ricerca").Click
+		wait 1
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Ricerca di una persona").UIAList("2453").UIAObject("Esecutore").Click
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Ricerca di una persona").WinButton("Conferma").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinComboBox("Tipo Esecutore").Select "Legale rappresentante"
+		wait 2	
+	End if 
+	'------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'	
+	If RecuperoInput("CONTRAENTE")="DIVERSODAASSICURATO" Then
+	codice_cliente_Assicurato=RecuperoInput("CODICE_CLIENTE_ASSICURATO")
+		'Compilo Assicurato
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinButton("n-Ass").Click
+		wait 2
+		'Click sull'assicurato già presente 
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Scelta legame assicurato(i)").UIAList("ListaAss").UIAObject("***assicurato***").Click
+		wait 3
+		'Elimino l'assicurato Presente
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinButton("Elimina").Click
+		wait 2
+		'Ricerco il Nuovo assicurato
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinEdit("Cognome").Click
+		wait 2
+		WshShell.SendKeys "{%}"
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca ed Identificazione...").WinButton("Ricerca").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+		wait 2
+		WshShell.SendKeys codice_cliente_Assicurato
+		wait 1
+		WshShell.SendKeys "{TAB}"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinButton("Ricerca").Click
+		wait 1
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Creazione di un nuovo").UIAWindow("Scelta legame assicurato(i)").UIAWindow("Ricerca di una persona").UIAList("ListaAssicurati").UIAObject("Assicurato").Click
+		wait 1
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").Window("Ricerca di una persona").WinButton("Conferma").Click
+		wait 3
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinComboBox("Classe").Select "Attivo"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinButton("Aggiungi").Click
+		wait 2
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Scelta legame assicurato(i)").WinButton("Conferma").Click
+	End if
+'------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'		
+	
+	
+	wait 2
+	'Click ultimo Conferma schermata proposta base
+	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").WinButton("Conferma").Click
+	
+	If 	Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Attenzione: operazione").Static("Collaboratore senza formazione").Exist(10) Then
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Attenzione: operazione").WinButton("Ok").Click
+		Reporter.ReportEvent micFail,  "Creazione Contratto Base con Fondi", "ERRORE: Collaboratore senza formazione. Impossibile procedere con l'emissione."
+		ExitTestIteration
+	End If
+	'Gestione Operazione non caricata in area comune
+	If Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Warning").WinButton("Ok").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Creazione di un nuovo").Window("Warning").WinButton("Ok").Click
+	End If
+	wait 2
+	
+
+	''Click il tasto SELEZIONE per il questionario ISVAP
+	Window("67CU").Window("Proposta").WinButton("Selezione").Click
+	'Gestisco popup dopo il clik di selezione
+	If Window("67CU").Window("Proposta").Window("Questionario ISVAP").WinButton("Ok").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Questionario ISVAP").WinButton("Ok").Click
+	End If
+	wait 2
+	'Click step successivo(Icona Ferro Da Stiro)
+	Window("67CU").Window("Proposta").InsightObject("IconaStepSuccessivo").Click
+	'Gestisco Popup ''Il valore dichiarato in proposta differisce da quello di contabilita''
+	if Window("67CU").Window("Proposta").Window("Information").WinButton("Ok").Exist(5) Then
+		Window("67CU").Window("Proposta").Window("Information").WinButton("Ok").Click
+	End if
+	wait 2
+	'Click Beneficiari
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("Beneficiari").Click
+	wait 1
+	'Click sul bottone Ab per selezionare il tipo di Beneficiari
+	Window("67CU").Window("Proposta").InsightObject("ButtonAb").Click
+	wait 2
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("SchermataBeneficiari").Window("SceltaBeneficiari").WinComboBox("Codice").Select "C0003 - Eredi legittimi o testamentari"
+	wait 2
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("SchermataBenConferma").Window("SchermataBenConferma").WinButton("Conferma").Click
+	wait 1
+
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("SchermataBenef").WinButton("Conferma").Click
+	wait 2
+	
+	'PER tcm VA AGGIUNTO L'IMPORTO EMISSIONE NEL CAMPO CAPITALE
+
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinEdit("Capitale").Click
+	wait 2
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinEdit("Capitale").Set ""
+	wait 2
+	importoEmissione=RecuperoInput("IMPORTO_EMISSIONE")
+	WshShell.SendKeys importoEmissione
+	wait 2
+	WshShell.SendKeys "{TAB}"
+	wait 1
+	
+	'---------------------------------------------------------------------PER PERSONA GIURIDICA------------------------------------------------------------------------------------------------------
+	If RecuperoInput("CONTRAENTE")="PG" Then
+		'In caso di Persona Giuridica andiamo a settare il Titolare Effettivo
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("ModTitEffettivo").Click
+		'Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("ModificaTitolareEffettivo").Click
+		wait 2
+		'Doppio Click sulla voce Anti Riciclo
+		Set WshShell = CreateObject("WScript.Shell")
+		UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Rapid Application Business").UIAWindow("PaginaCliente").UIAList("ElencoVoci").UIAObject("Antiriciclo").Click
+		wait 1
+		WshShell.SendKeys "{ENTER}"
+		wait 2
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").WinButton("Titolare Effettivo").Click
+		wait 2
+		'Qualora il titolare effettivo fosse già presente bisogna scegliere il primo nella lista e non bisogna crearlo
+		If Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("selezionare per confermare").Exist(7) Then
+			wait 2
+			'Click primo titolare
+			UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Rapid Application Business").UIAWindow("Codice Cliente: 788858").UIAWindow("Antiriciclo").UIAWindow("Titolare effettivo già").UIAList("825").UIAObject("ZIMMERMANN ELSE FRANCOISE").Click
+			wait 2
+			'Click Conferma
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("selezionare per confermare").WinButton("Ok").Click
+			'Popup Titolare Aggiunto
+			If Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Information").WinButton("Ok").Exist(7) Then
+				Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Information").WinButton("Ok").Click
+			End If
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").WinButton("Conferma").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").WinButton("Conferma").Click
+		Else
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Titolare Effettivo").WinButton("Crea").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Titolare Effettivo").Window("Ricerca di una persona").WinEdit("Codice Cliente").Click
+			wait 2
+			WshShell.SendKeys codiceClienteAssicurato
+			wait 2
+			WshShell.SendKeys "{TAB}"
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Titolare Effettivo").Window("Ricerca di una persona").WinButton("Ricerca").Click
+			wait 2
+			UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Rapid Application Business").UIAWindow("Codice Cliente: 854652").UIAWindow("Antiriciclo").UIAWindow("Titolare Effettivo").UIAWindow("Ricerca di una persona").UIAList("2873").UIAObject("TitotaleEffettivo").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Titolare Effettivo").Window("Ricerca di una persona").WinButton("Conferma").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").Window("Titolare Effettivo").WinButton("Conferma").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").Window("Antiriciclo").WinButton("Conferma").Click
+			wait 2
+			Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Persona giuridica").WinButton("Conferma").Click
+		End If
+	End if
+
+'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'	
+	
+'	 clicco Riepilogo
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("Riepilogo").Click
+	wait 3
+	'Clicco Conferma sulla pagina del riepilogo
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Rapid Application Business").WinButton("Conferma").Click
+
+	
+	wait 1
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinComboBox("Tipo Pag. alla Firma:").Select "Assegno bancario"
+	wait 1	
+	
+	'compilo adeguata verifica
+	Call AdeguataVerifica
+	
+	
+	'Ritono alla pagina principale e clicco Riepilogo
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("Riepilogo").Click
+	wait 3
+	'Clicco Conferma sulla pagina del riepilogo
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Rapid Application Business").WinButton("Conferma").Click
+	wait 2
+	'Gestisco popup di Warning Cedole
+	if Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Warning").WinButton("Ok").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Warning").WinButton("Ok").Click
+	End if
+	'Gestisco Popup ''Il valore dichiarato in proposta differisce da quello di contabilita''
+	if Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Information").WinButton("Ok").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Information").WinButton("Ok").Click
+	End if
+	wait 2
+	'Clicco ultimo Conferma pagina principale
+	Window("67CU").Window("Proposta").Window("Rapid Application Business").WinButton("Conferma").Click
+	wait 2
+	'Gestisco Popup Coordinate bancarie Contraente
+	if Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Coordinate bancarie contraente").WinButton("Continua").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Coordinate bancarie contraente").WinButton("Continua").Click
+	End if
+	wait 2
+	'Gestisco popup Warning dati relativi alle cedole
+	if Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Warning").WinButton("Ok").Exist(7) Then
+		Window("67CU").Window("Proposta").Window("Rapid Application Business").Window("Warning").WinButton("Ok").Click
+	End if
+	wait 2
+	
+	
+	'Click button Modifica per inserire Pol.Normale
+	Window("67CU").Window("Proposta").WinButton("Modifica").Click
+	wait 3
+	'Click Freccetta Pol Normale
+'	If Window("67CU").InsightObject("FreccettaPolNormale").Exist(20) Then
+'		Window("67CU").InsightObject("FreccettaPolNormale").Click
+'	Else
+		Window("67CU").Window("Proposta").Window("Modifica della situazione").WinButton("Button").Click
+'	End If
+	wait 2
+	'Click Tipo Polizza Normale
+	UIAWindow("67CU").UIAWindow("Proposta").UIAWindow("Modifica della situazione").UIAWindow("Situazioni seguenti possibili").UIAList("ListaTipoPolizze").UIAObject("Pol_normale").Click
+	wait 2
+	'Click Conferma Pol Normale
+	Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Situazioni seguenti possibili").WinButton("Ok").Click
+	wait 2
+	if Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Information").WinButton("Ok").Exist(10) Then
+		Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Information").WinButton("Ok").Click
+	End if
+	'Click Conferma Pol Normale
+	Window("67CU").Window("Proposta").Window("Modifica della situazione").WinButton("Conferma").Click
+
+
+	if Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Information").WinButton("Ok").Exist(10) Then
+		Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Information").WinButton("Ok").Click
+	End if
+	wait 8
+	'Click secondo Conferma Creazione d'un Premio in Contanti
+	Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Creazione d'un premio").WinButton("Conferma").Click
+	wait 5
+	
+	if Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Informazione").WinButton("Ok").Exist(50) Then
+		Window("67CU").Window("Proposta").Window("Modifica della situazione").Window("Informazione").WinButton("Ok").Click
+	End if
+	wait 5
+	'Recupero Numero Polizza 
+	numeroPolizza=Window("67CU").Window("Proposta").WinEdit("N° polizza").GetROProperty("text")
+	Call setProperty("NUMERO_POLIZZA_TCM",numeroPolizza)
+
+	'File-Salva
+	wait 1 
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("Application").UIAObject("File").Click
+	wait 1
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("File").UIAObject("Salva F3").Click
+	wait 4
+	
+	if Window("67CU").Window("Proposta").Window("Information").WinButton("Ok").Exist(20) Then
+		Window("67CU").Window("Proposta").Window("Information").WinButton("Ok").Click
+	End if
+		
+	wait 4
+	'File-Esci
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("Application").UIAObject("File").Click
+	wait 1
+	UIAWindow("67CU").UIAWindow("Proposta").UIAMenu("File").UIAObject("Esci F4").Click
+
+
+
+
+	
+End Function

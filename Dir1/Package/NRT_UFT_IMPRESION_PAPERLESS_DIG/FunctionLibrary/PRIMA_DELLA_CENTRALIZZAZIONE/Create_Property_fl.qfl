@@ -1,0 +1,26 @@
+﻿Function CreazioneProperty
+	
+	Set qtApp = CreateObject("QuickTest.Application") 
+	Set qtTest = qtApp.Test
+	qtTest.Settings.Run.IterationMode = "rngAll" ' Run one iteration of the test
+	
+	testname = Environment("TestName")
+	
+'	If  Environment.Value("nested") = true Then'se vengo richiamato da action esterna con parametro nested recupero i parametri di input
+'		compagnia = Parameter("Param2")
+'	Else
+'		compagnia=RecuperoInput("COMPAGNIA")
+'	End If
+'	
+	compagnia=RecuperoInput("COMPAGNIA")
+	
+	TimeStamp = Replace(Replace(Replace(Now, " ", "_"), "/", ""), ":", "")
+	data_odierna=Replace(Date, "/", "_")
+	TempFolder ="\\applicazionidiGruppo\Applicazioni\SWTestingTools\UFT_One\Test\Properties\"&data_odierna&"\"
+
+	NomeFile=TempFolder&" "&testname&"_"&compagnia&"_"&TimeStamp&".txt"
+	
+'	NomeFile="C:\Properties\"&"Properties_NRT - Emissione - TCM_REALE MUTUA_TCM_09032022_163752"&".txt"
+	Environment.Value("nomedelfile")=NomeFile
+	Call CreateProperty(NomeFile,TempFolder)
+ End Function

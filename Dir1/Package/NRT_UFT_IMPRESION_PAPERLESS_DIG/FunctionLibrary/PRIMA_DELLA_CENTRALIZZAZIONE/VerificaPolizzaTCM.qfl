@@ -1,0 +1,97 @@
+﻿Function VerificaPolizzaTCM
+	
+	wait 1
+	'click su menu interrogazioni
+	UIAWindow("67CU").UIAMenu("Application").UIAObject("Interrogazioni").Click
+	wait 1
+	'click su voce contratto
+	UIAWindow("67CU").UIAMenu("Interrogazioni").UIAObject("Contratto").Click
+	wait 1
+	'Inserisco Numero Polizza
+	Set WshShell = CreateObject("WScript.Shell")
+	nPolizza=getProperty("NUMERO_POLIZZA_TCM")
+	Window("67CU").Window("Contrat Explorer").WinEdit("N° polizza").Click
+	wait 1
+	WshShell.SendKeys nPolizza
+	wait 1
+	'TAB
+	wait 3
+	WshShell.SendKeys "{TAB}"
+	wait 5
+	'Gestione Popup Contratto Con Note
+	if UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAWindow("ContrattoConNote").UIAButton("Ok").Exist(5) Then
+		UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAWindow("ContrattoConNote").UIAButton("Ok").Click
+		wait 1
+	End if
+		
+	
+	'gestione popup polizza legata ad altri contratti
+	If UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAWindow("Information").UIAButton("Ok").Exist(7) Then
+		UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAWindow("Information").UIAButton("Ok").Click
+		wait 1
+	End If
+		
+	wait 2
+	
+	UIAWindow("67CU").UIAWindow("Dettagli Contratto").Activate
+	wait 1
+	UIAWindow("67CU").UIAWindow("Dettagli Contratto").Maximize
+	wait 10
+		
+	
+	
+	Dim numeroEventi
+	Set oDesc = Description.Create()
+	oDesc("controltype").Value = "ListItem" 'Recupera tutti gli eventi
+	Set evento = UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAList("EventiContratto").ChildObjects(oDesc)
+	numeroEventi = evento.Count ' recupero numero totale eventi
+	If numeroEventi = 0 Then
+		Reporter.ReportEvent micFail, "Verifica polizza TCM", "Sul contratto non sono presenti eventi"
+		ExitTestIteration
+	End If
+		
+		
+'		08/03/2022	08/03/2022	Registrazione proposta: RMA B01E/50052387 : RUVIO ERMIDA - Pol_normale - Effetto il 08/03/2022	CY05775	76		
+		'08/03/2022	08/03/2022	Emissione titolo: 50052387 - premio ad emissione N° 221.467.979 di         207,00 EUR dal 08/03/2022 al 07/03/2023	CY05775	94	811511	
+		'08/03/2022	08/03/2022	Emissione contratto: RMA B01E/50052387 : RUVIO ERMIDA - Pol_normale - Effetto il 08/03/2022	CY05775	77	811512	
+	eventiToCheck=array("Registrazione proposta","Emissione titolo","Emissione contratto")
+	eventiTrovati=array()
+	For Each Item in eventiToCheck 
+		For i = 0 To numeroEventi -1
+			singoloevento = evento(i).GetROProperty("name")
+			dataSistema = getProperty("DATA_SISTEMA")
+			numeroPolizza = getProperty("NUMERO_POLIZZA_TCM")
+			'controllo evento
+			If instr(singoloevento, dataSistema)> 0 And instr(singoloevento, Item)> 0  And instr(singoloevento, nPolizza)> 0 Then
+				ReDim Preserve eventiTrovati(UBound(eventiTrovati) + 1)
+				eventiTrovati(UBound(eventiTrovati)) = item			
+				eventiContratto = Join (eventiTrovati,";")			
+			End If		
+		Next
+	Next	
+	
+	eventiDaControllare = Join (eventiToCheck,";")		
+	
+	If not eventiContratto=eventiDaControllare Then
+		Reporter.ReportEvent  micFail,  "Verifica polizza TCM", "ERRORE: Sul contratto "&nPolizza&" sono presenti i seguenti eventi: "&eventiContratto&". Gli eventi attesi erano: "&eventiToCheck
+		ExitTestIteration	
+	End If
+	importo=CLng(RecuperoInput("IMPORTO_EMISSIONE"))
+	importoEmissione=FormatNumber(importo)
+	checkRIga=	UIAWindow("67CU").UIAWindow("Dettagli Contratto").UIAList("ListaGaranzie").UIAObject("Temporanea a premi annui").GetROProperty("name")
+
+	If Instr (checkRIga, "Attiva")>0 And  instr(checkRIga,importoEmissione)>0 And Instr (checkRIga,dataSistema)>0 Then
+		Reporter.ReportEvent micPass, "Verifica polizza TCM", "Riga attesa: "&checkRIga
+	Else
+		Reporter.ReportEvent  micFail,  "Verifica polizza TCM", "ERRORE: Sul contratto "&nPolizza&" erano attesi Situazione Attiva, capitale iniziale "&importoEmissione&" data "&dataSistema&". Valori presenti sulla riga: "&checkRIga 
+		ExitTestIteration	
+	End If
+	
+	
+	'esci dalla polizza
+	UIAObject("Desktop").InsightObject("Icona Exit").Click
+	wait 2
+
+	
+End Function
+

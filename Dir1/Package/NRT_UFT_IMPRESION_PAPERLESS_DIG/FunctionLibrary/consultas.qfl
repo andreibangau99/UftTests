@@ -1,0 +1,7 @@
+﻿Function checkTextByField(field, data)
+	Dim excelData 
+	excelData = recuperoInput(data)
+	Dim value
+       value = JavaWindow("REALE SEGUROS").JavaInternalFrame("CONSULTA GENERAL ( POLIZA").JavaEdit(field).GetROProperty("text")
+       Call assertText(value, excelData)
+End Function

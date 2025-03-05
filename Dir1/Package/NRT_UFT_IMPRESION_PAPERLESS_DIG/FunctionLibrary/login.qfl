@@ -1,0 +1,15 @@
+﻿Function login
+
+	Dim username
+	username = recuperoInput("USER")
+	
+	Dim password
+	password = recuperoInput("PASSWORD")
+
+	JavaWindow("REALE SEGUROS").JavaInternalFrame("C o n e x i ó n   AIRE").JavaEdit("user_login").WaitProperty "visible", True, 10000
+	JavaWindow("REALE SEGUROS").JavaInternalFrame("C o n e x i ó n   AIRE").JavaEdit("user_login").Set username
+       JavaWindow("REALE SEGUROS").JavaInternalFrame("C o n e x i ó n   AIRE").JavaEdit("pass_login").SetFocus
+       JavaWindow("REALE SEGUROS").JavaInternalFrame("C o n e x i ó n   AIRE").JavaEdit("pass_login").SetSecure password
+       JavaWindow("REALE SEGUROS").JavaInternalFrame("C o n e x i ó n   AIRE").JavaEdit("pass_login").PressKey micReturn
+End Function
+

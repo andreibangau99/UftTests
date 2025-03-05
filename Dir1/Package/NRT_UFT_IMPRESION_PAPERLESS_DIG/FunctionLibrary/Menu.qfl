@@ -1,0 +1,19 @@
+﻿Function access_menu_option(path)
+	Dim niveles
+	    Dim i
+	    Dim menuActual
+	
+	    ' Dividir el path en niveles
+	    niveles = Split(path, "/")
+	
+	    ' Inicializar el menú actual con la ventana principal
+	    Set menuActual = JavaWindow("REALE SEGUROS").JavaApplet("Main")
+	    
+	    
+	    ' Iterar sobre cada nivel del path y seleccionar el menú correspondiente
+	    For i = 0 To UBound(niveles)
+	        Set menuActual = menuActual.JavaMenu(niveles(i))
+	        menuActual.WaitProperty "enabled", True, 15000
+	 	 menuActual.Select
+	    Next
+End Function

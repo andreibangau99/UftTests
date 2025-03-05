@@ -1,0 +1,73 @@
+﻿Function RidenominazioneCompagnia
+		
+	If  checkEnvVariableExist("nested") Then'se vengo richiamato da action esterna con parametro nested recupero i parametri di input
+		codiceClienteCompagnia = Parameter("CODICE_COMPAGNIA")
+		nomeCompagnia = Parameter("RAGIONESOCIALE_COMPAGNIA")
+		writeMessage "Paramentri input ESTERNI" , "rilevo chiamata da Action esterna, recupero l'input passato"
+	Else'altrimenti li recupero nel modo classico
+		codiceClienteCompagnia=RecuperoInput("CODICE_COMPAGNIA")
+		nomeCompagnia=RecuperoInput("RAGIONESOCIALE_COMPAGNIA")
+		writeMessage "Paramentri input INTERNI" , "recupero l'input dalla dataTable"
+	End If
+	
+	Set WshShell = CreateObject("WScript.Shell")
+
+	Call awaitAndClickMandatory(UIAWindow("67CU").UIAMenu("Application").UIAObject("Parametrazioni"),getEVar("W_15"))
+	
+	Call awaitAndClickMandatory(UIAWindow("67CU").UIAMenu("Parametrazioni").UIAObject("Area generica"),getEVar("W_15"))
+	
+	Call awaitAndClickMandatory(UIAWindow("67CU").UIAMenu("Area generica").UIAObject("Anagrafica persone"),getEVar("W_15"))
+	
+	Call awaitMandatory(UIAWindow("GestionePersone"),getEVar("W_15"))
+	
+	Set menu = UIAWindow("GestionePersone").UIAMenu("Applicazione").UIAObject("Amministrazione")
+	Set menuEntry = UIAWindow("GestionePersone").UIAMenu("Amministrazione").UIAObject("PG")
+	Call awaitAndClickMenuMandatory(menu,menuEntry,getEVar("W_60"))
+	
+	Call awaitMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAEdit("codiceCliente"),getEVar("W_15"))
+	
+	Call awaitAndClickMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAEdit("codiceCliente"),getEVar("W_15"))
+	
+	cWait "W_0500"	
+	WshShell.SendKeys codiceClienteCompagnia'Inserisco il codice cliente compagnia
+	cWait "W_1"
+	
+	WshShell.SendKeys "{TAB}"
+	
+	Call awaitAndClickMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAButton("cerca"),getEVar("W_15"))
+	
+	
+	Call awaitMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAList("listaClienti").UIAObject("rigaCliente"),getEVar("W_15"))
+
+	Call awaitAndClickMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAList("listaClienti").UIAObject("rigaCliente"),getEVar("W_15"))
+	Call awaitAndClickMandatory(UIAWindow("GestionePersone").UIAWindow("RicercaPersona").UIAButton("conferma"),getEVar("W_15"))
+   	
+   	Call awaitMandatory(UIAWindow("ClienteGiuridico"),getEVar("W_15"))
+	Call awaitMandatory(UIAWindow("ClienteGiuridico").UIAEdit("ragioneSociale"),getEVar("W_15"))
+   	
+	WshShell.SendKeys "{TAB}"
+	cWait "W_0500"
+	
+	WshShell.SendKeys nomeCompagnia
+	cWait "W_0500"
+	
+	WshShell.SendKeys "{TAB}"
+
+	'Clicco su conferma ed aspetto che scompaia la schermata
+	Call awaitAndClickMandatory(UIAWindow("ClienteGiuridico").UIAButton("conferma"),getEVar("W_15"))
+	Call awaitInvertedMandatory(UIAWindow("ClienteGiuridico"),getEVar("W_120"))
+	
+	'Salvo
+	UIAWindow("GestionePersone").Activate
+	WshShell.SendKeys "{F2}"
+	
+	Call awaitAndClick(UIAWindow("GestionePersone").UIAWindow("GestioneStampe").UIAButton("conferma"),getEVar("W_30"))
+	
+	'Gestione possibile errore (falso positivo)
+	If await(UIAWindow("GestionePersone").UIAWindow("MessaggioErrore"),getEVar("W_15")) then Call failTest("MESSAGGIO DI ERRORE PRESENTE ",UIAWindow("GestionePersone").UIAWindow("MessaggioErrore").UIAEdit("testoMessaggio").GetROProperty("text"))
+
+	'Esco
+	UIAWindow("GestionePersone").Activate
+	WshShell.SendKeys "{F12}"
+	
+End Function
